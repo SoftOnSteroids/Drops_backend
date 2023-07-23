@@ -20,10 +20,10 @@ class Dropper(BaseModel):
     date_expiration: datetime | None = None
     doses: list[Dose] | None = None
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        if "frequency" in data:
-            self.generateDoses()
+    # def __init__(self, **data):
+    #     super().__init__(**data)
+    #     if "frequency" in data:
+    #         self.generateDoses()
     
     def __setattr__(self, name, value):
         if name == "frequency":
@@ -43,15 +43,15 @@ class Dropper(BaseModel):
         return self.doses
     
     def generateDoses(self, end: Optional[datetime] = None, start: Optional[datetime] = None):
-        print("### Generating doses ###")
         if not start:
             start = self.start_datetime if self.start_datetime else datetime.combine(date.today(), time(hour=8))
         if not end:
             end = self.end_day if self.end_day else self.date_expiration if self.date_expiration else datetime.today()
 
-        if self.frequency and self.doses:
+        if self.frequency:
+            print("### Generating doses ###")
             # Separate doses to keep
-            keep_doses = list(filter(lambda dose: dose.application_datetime < start, self.doses))
+            keep_doses = list(filter(lambda dose: dose.application_datetime < start, self.doses)) if self.doses else []
             # Create doses from start to end.
             td_to_hours = lambda time_delta: time_delta.total_seconds() / (60 * 60)
             doses_in_delta = round(td_to_hours(end-start) / self.frequency)

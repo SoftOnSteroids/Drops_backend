@@ -16,6 +16,7 @@ router = APIRouter(prefix="/doses",
 async def f_doses(dropper_id: Annotated[str | None, Query()] = None,
                   dropper_name: Annotated[str | None, Query()] = None,
                   application_datetime: Annotated[datetime | None, Query()] = None,
+                  place_apply: Annotated[int | None, Query()] =None,
                   start: Annotated[datetime | None, Query()] = None,
                   end: Annotated[datetime | None, Query()] = None
                      ) -> list[Dose] | None:
@@ -23,6 +24,7 @@ async def f_doses(dropper_id: Annotated[str | None, Query()] = None,
         "dropper_id": dropper_id,
         "dropper_name": dropper_name,
         "application_datetime": application_datetime,
+        "place_apply": place_apply,
         "start": start,
         "end": end})
 

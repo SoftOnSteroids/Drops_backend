@@ -21,6 +21,11 @@ class DoseHelper(Helper):
             query["$match"].update({"name": dict_url["dropper_name"]})
         if "application_datetime" in dict_url:
             query["$match"].update({"doses.application_datetime": dict_url["application_datetime"]})
+        if "place_apply" in dict_url:
+            query["$match"].update({"$or": [
+                {"place_apply": dict_url["place_apply"]},
+                {"place_apply": 3},
+                ]})
         if "end" in dict_url or "start" in dict_url:
             query["$match"].update({"doses.application_datetime": {}})
             if "start" in dict_url:

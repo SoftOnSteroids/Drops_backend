@@ -48,18 +48,27 @@ async def f_add_dropper(dropper: Dropper) -> Dropper | HTTPException:
             )
     if dropper.id: del(dropper.id)
     new_id = db_client.droppers.insert_one(document=dropper.dict()).inserted_id
-    return Dropper.parse_obj(db_client.droppers.find_one({"_id": new_id}))
+
+    new_dropper = Dropper.parse_obj(db_client.droppers.find_one({"_id": new_id}))
+    if not new_dropper.doses:
+        new_dropper.generateDoses()
+    return new_dropper
 
 @router.put("/", response_model=Dropper, status_code=status.HTTP_200_OK)
 async def f_modify_dropper(dropper: Dropper) -> Dropper | HTTPException:
     dropper_dict = {k: v for k, v in dropper.dict().items() if v is not None and k != "id"}
 
-    if dropper_updated := db_client.droppers.find_one_and_update(
+    if db_dropper_updated := db_client.droppers.find_one_and_update(
         {"_id": ObjectId(dropper.id) if dropper.id else None},
         {"$set": dropper_dict},
         return_document= ReturnDocument.AFTER
         ):
-        return Dropper().parse_obj(dropper_updated)
+        dropper_updated = Dropper().parse_obj(db_dropper_updated)
+        # if some specific attributes are being updated, regenerate doses
+        matches = ["frequency", "start_datetime", "end_day", "date_expiration"]
+        if any([x in dropper_dict for x in matches]):
+            dropper_updated.generateDoses()
+        return dropper_updated
     else:
         raise HTTPException(
             status_code=status.HTTP_304_NOT_MODIFIED, 
