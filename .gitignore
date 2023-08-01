@@ -566,3 +566,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+.space

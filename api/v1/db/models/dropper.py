@@ -20,21 +20,29 @@ class Dropper(BaseModel):
     date_expiration: datetime | None = None
     doses: list[Dose] | None = None
 
-    # def __init__(self, **data):
-    #     super().__init__(**data)
-    #     if "frequency" in data:
-    #         self.generateDoses()
-    
-    def __setattr__(self, name, value):
-        if name == "frequency":
-            # self.generateDoses()
-            print(f"Seetting {name} with value {value}")
-        super().__setattr__(name, value)
+    def __init__(self, **data):
+        if "_id" in data and data["_id"] == "":
+            del data["_id"]
+        super().__init__(**data)
+        self._check_db()
+    # def __setattr__(self, name, value):
+    #     if name == "frequency":
+    #         # self.generateDoses()
+    #         print(f"Seetting {name} with value {value}")
+    #     super().__setattr__(name, value)
 
     class Config:
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
         json_encoders = {PyObjectId: str}
+
+    def _check_db(self):
+        index = IndexModel([("_id", ASCENDING), ("doses.application_datetime", ASCENDING)], 
+                   unique=True,
+                   name="dose_application_datetime")
+        db_client.droppers.create_indexes([index])
+        # db_client.droppers.drop_index(index_or_name="name_date_expiration_unique")
+        # db_client.droppers.create_index("code", unique=True)
 
     def getDoses(self, start: datetime, end: datetime) -> list[Dose] | None:
         # If doses in range date exist return it, else create it.
@@ -68,10 +76,3 @@ class Dropper(BaseModel):
                 {"$set": Helper.clean_query(self.dict())},
                 return_document= ReturnDocument.AFTER
                 )
-
-# index = IndexModel([("_id", ASCENDING), ("doses.application_datetime", ASCENDING)], 
-#                    unique=True,
-#                    name="dose_application_datetime")
-# db_client.droppers.create_indexes([index])
-# db_client.droppers.drop_index(index_or_name="name_date_expiration_unique")
-# db_client.droppers.create_index("code", unique=True)
