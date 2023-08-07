@@ -9,16 +9,16 @@ from v1.db.models.pyObjectId import PyObjectId
 from v1.db.logic.helpers import Helper
 
 class Dropper(BaseModel):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-    name: Optional[str] = None
-    description: Optional[str] = None
-    code: Optional[str] = None
-    place_apply: Optional[int] = None
-    frequency: Optional[int] = None
-    start_datetime: Optional[datetime] = None
-    end_day: Optional[datetime] = None
-    date_expiration: Optional[datetime] = None
-    doses: Optional[list[Dose]] = None
+    id: PyObjectId | None = Field(default_factory=PyObjectId, alias="_id")
+    name: str | None = None
+    description: str | None = None
+    code: str | None = None
+    place_apply: int | None = None
+    frequency: int | None = None
+    start_datetime: datetime | None = None
+    end_day: datetime | None = None
+    date_expiration: datetime | None = None
+    doses: list[Dose] | None = None
 
     def __init__(self, **data):
         if "_id" in data and data["_id"] == "":
@@ -44,7 +44,7 @@ class Dropper(BaseModel):
         # db_client.droppers.drop_index(index_or_name="name_date_expiration_unique")
         # db_client.droppers.create_index("code", unique=True)
 
-    def getDoses(self, start: datetime, end: datetime) -> Optional[list[Dose]]:
+    def getDoses(self, start: datetime, end: datetime) -> list[Dose] | None:
         # If doses in range date exist return it, else create it.
         if self.doses == None or len(self.doses) == 0 or max(d.application_datetime for d in self.doses) < end:
             self.generateDoses(end=end)

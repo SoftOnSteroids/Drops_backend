@@ -1,11 +1,10 @@
-from typing import Optional
 from v1.db.client import db_client
 from v1.db.models.dose import Dose
 from v1.db.logic.helpers import Helper
 
 class DoseHelper(Helper):
     @classmethod
-    def get_doses(cls, dict_url: dict) -> Optional[list[Dose]]:
+    def get_doses(cls, dict_url: dict) -> list[Dose] | None:
         """
         Search doses in database.
         Params considered: dropper_id, dropper_name, application_datetime, start, end

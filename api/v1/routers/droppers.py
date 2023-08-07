@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Query
 from bson import ObjectId
 from pymongo import ReturnDocument
-from typing import Annotated, Optional, Union
+from typing import Annotated
 from v1.db.models.dropper import Dropper
 from v1.db.client import db_client
 from v1.db.logic.helpers import Helper
@@ -13,14 +13,14 @@ router = APIRouter(prefix="/droppers",
                    responses={status.HTTP_404_NOT_FOUND: {"message": "No encontrado."}})
 
 @router.get("/")
-async def f_droppers(id: Annotated[Optional[str], Query()] = None,
-                    name: Annotated[Optional[str], Query()] = None,
-                    code: Annotated[Optional[str], Query()] = None,
-                    place_apply: Annotated[Optional[int], Query()] = None,
-                    start_datetime: Annotated[Optional[datetime], Query()] = None,
-                    end_day: Annotated[Optional[date], Query()] = None,
-                    date_expiration: Annotated[Optional[date], Query()] = None
-                     ) -> Optional[list[Dropper]]:
+async def f_droppers(id: Annotated[str | None, Query()] = None,
+                    name: Annotated[str | None, Query()] = None,
+                    code: Annotated[str | None, Query()] = None,
+                    place_apply: Annotated[int | None, Query()] = None,
+                    start_datetime: Annotated[datetime | None, Query()] = None,
+                    end_day: Annotated[date | None, Query()] = None,
+                    date_expiration: Annotated[date | None, Query()] = None
+                     ) -> list[Dropper] | None:
     dict_path={"id": id,
              "name": name,
              "code": code,
@@ -33,7 +33,7 @@ async def f_droppers(id: Annotated[Optional[str], Query()] = None,
     return [Dropper.parse_obj(dropper_db) for dropper_db in droppers_db]
 
 @router.post("/", response_model=Dropper, status_code=status.HTTP_201_CREATED)
-async def f_add_dropper(dropper: Dropper) -> Union[Dropper, HTTPException]:
+async def f_add_dropper(dropper: Dropper) -> Dropper | HTTPException:
     # Verify that no other dropper exist with same name or code
     query = {
         "name": dropper.name
@@ -55,7 +55,7 @@ async def f_add_dropper(dropper: Dropper) -> Union[Dropper, HTTPException]:
     return new_dropper
 
 @router.put("/", response_model=Dropper, status_code=status.HTTP_200_OK)
-async def f_modify_dropper(dropper: Dropper) -> Union[Dropper, HTTPException]:
+async def f_modify_dropper(dropper: Dropper) -> Dropper | HTTPException:
     dropper_dict = {k: v for k, v in dropper.dict().items() if v is not None and k != "id"}
 
     if db_dropper_updated := db_client.droppers.find_one_and_update(
@@ -76,7 +76,7 @@ async def f_modify_dropper(dropper: Dropper) -> Union[Dropper, HTTPException]:
             )
 
 @router.delete("/", response_model=Dropper, status_code=status.HTTP_200_OK)
-async def f_delete_dropper(dropper: Dropper) -> Union[Dropper, HTTPException]:
+async def f_delete_dropper(dropper: Dropper) -> Dropper | HTTPException:
     if not (dropper_deleted := db_client.droppers.find_one_and_delete(
             {"_id": ObjectId(dropper.id)}
             )):
