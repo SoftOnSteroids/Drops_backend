@@ -1,9 +1,10 @@
+from typing import Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
 from v1.db.models.pyObjectId import PyObjectId
 
 class Dose(BaseModel):
-    dropper_id: PyObjectId | None = Field(default_factory=PyObjectId)
+    dropper_id: Optional[PyObjectId] = Field(default_factory=PyObjectId)
     application_datetime: datetime
     
     class Config:
