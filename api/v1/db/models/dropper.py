@@ -1,12 +1,15 @@
-from typing import Optional
 from bson import ObjectId
+from datetime import date, datetime, timedelta, time
+from typing import Optional
+
 from pydantic import BaseModel, Field, validator
 from pymongo import IndexModel, ASCENDING, ReturnDocument
-from datetime import date, datetime, timedelta, time
+
 from v1.db.client import db_client
 from v1.db.models.dose import Dose
 from v1.db.models.pyObjectId import PyObjectId
 from v1.db.logic.helpers import Helper
+
 
 class Dropper(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
@@ -37,9 +40,9 @@ class Dropper(BaseModel):
         json_encoders = {PyObjectId: str}
 
     def _check_db(self):
-        index = IndexModel([("_id", ASCENDING), ("doses.application_datetime", ASCENDING)], 
-                   unique=True,
-                   name="dose_application_datetime")
+        index = IndexModel([("_id", ASCENDING), ("doses.application_datetime", ASCENDING)],
+                           unique=True,
+                           name="dose_application_datetime")
         db_client.droppers.create_indexes([index])
         # db_client.droppers.drop_index(index_or_name="name_date_expiration_unique")
         # db_client.droppers.create_index("code", unique=True)
@@ -49,30 +52,36 @@ class Dropper(BaseModel):
         if self.doses == None or len(self.doses) == 0 or max(d.application_datetime for d in self.doses) < end:
             self.generateDoses(end=end)
         return self.doses
-    
+
     def generateDoses(self, end: Optional[datetime] = None, start: Optional[datetime] = None):
         if not start:
-            start = self.start_datetime if self.start_datetime else datetime.combine(date.today(), time(hour=8))
+            start = self.start_datetime if self.start_datetime else datetime.combine(
+                date.today(), time(hour=8))
         if not end:
             end = self.end_day if self.end_day else self.date_expiration if self.date_expiration else datetime.today()
 
         if self.frequency:
             print("### Generating doses ###")
             # Separate doses to keep
-            keep_doses = list(filter(lambda dose: dose.application_datetime < start, self.doses)) if self.doses else []
+            keep_doses = list(filter(
+                lambda dose: dose.application_datetime < start, self.doses)) if self.doses else []
             # Create doses from start to end.
-            td_to_hours = lambda time_delta: time_delta.total_seconds() / (60 * 60)
+
+            def td_to_hours(
+                time_delta): return time_delta.total_seconds() / (60 * 60)
             doses_in_delta = round(td_to_hours(end-start) / self.frequency)
             # print(f"start: {start}, end: {end}, frequency: {self.frequency}, td_to_hours: {round(td_to_hours(end-start))}, doses_in_delta: {doses_in_delta}")
             for i in range(doses_in_delta + 1):
-                set_dose_time = lambda start, freq: start + timedelta(hours= freq * i)
-                keep_doses.append(Dose(dropper_id=self.id, application_datetime= set_dose_time(start, self.frequency)))
+                def set_dose_time(start, freq): return start + \
+                    timedelta(hours=freq * i)
+                keep_doses.append(Dose(
+                    dropper_id=self.id, application_datetime=set_dose_time(start, self.frequency)))
                 # print(f"set_dose_time: {set_dose_time(start, self.frequency)}, i: {i}")
-            
-            self.doses=keep_doses
+
+            self.doses = keep_doses
 
             db_client.droppers.find_one_and_update(
                 {"_id": ObjectId(self.id)},
                 {"$set": Helper.clean_query(self.dict())},
-                return_document= ReturnDocument.AFTER
-                )
+                return_document=ReturnDocument.AFTER
+            )

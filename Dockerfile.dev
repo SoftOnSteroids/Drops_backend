@@ -1,4 +1,4 @@
-FROM python:3.13.0a1-bookworm
+FROM python:3.13.0a1-slim
 
 LABEL maintainer="dev@coloccini.com.ar"
 
@@ -6,12 +6,15 @@ LABEL maintainer="dev@coloccini.com.ar"
 ENV PYTHONBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-WORKDIR /code/app
+WORKDIR /code
 
-COPY ./requirements.txt /code/requirements.txt
-
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-
+COPY ./requirements*.txt ./
+RUN pip install --no-cache-dir -r ./requirements-dev.txt
+    
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+WORKDIR /code/api
+
+# CMD ["python", "main.py"]
+
+# CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

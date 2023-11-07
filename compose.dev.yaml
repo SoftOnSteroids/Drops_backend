@@ -1,10 +1,41 @@
 services:
+  db:
+    image: mongo:7.0.2
+    ports:
+      - 27017:27017
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: mngo_r007
+    volumes:
+      - "drops_db_vol:/data/db"
   dropsite:
-    container_name: dropsite
+    container_name: dropsapi
+    stdin_open: true
+    tty: true
+    # environment:
+    #   PORT: 8000
     build:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "8000:8000"
+      - 8000:8000
+      - 5678:56678
+    #restart: always
     volumes:
-      - ./api:/code/app
+      - "drops_backend_vol:/code"
+    depends_on:
+      - db
+volumes:
+  drops_backend_vol:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /Users/franco/Documents/Drops/Backend 
+  drops_db_vol:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /Users/franco/Documents/Drops/data
