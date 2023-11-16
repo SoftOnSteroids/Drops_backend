@@ -1,9 +1,12 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
 import uvicorn
 
 from v1.routers import droppers, doses
 
 app = FastAPI()
+
+load_dotenv()
 
 # Routers
 app.include_router(droppers.router)
