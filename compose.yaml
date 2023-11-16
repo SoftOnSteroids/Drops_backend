@@ -1,8 +1,0 @@
-services:
-  dropsite:
-    container_name: dropsite
-    build: .
-    volumes:
-      - .:/code
-    ports:
-      - "80:80"

@@ -3,7 +3,7 @@ services:
     image: mongo:7.0.2
     ports:
       - 27017:27017
-    restart: always
+    #restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: mngo_r007
@@ -13,8 +13,7 @@ services:
     container_name: dropsapi
     stdin_open: true
     tty: true
-    # environment:
-    #   PORT: 8000
+    command: tail -F anything
     build:
       context: .
       dockerfile: Dockerfile.dev
